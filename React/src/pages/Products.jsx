@@ -96,41 +96,66 @@ export default function Products() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>📦 Produtos</h1>
+    <div className="container">
+      <div className="page-header">
+        <h1>📦 Produtos</h1>
+      </div>
 
-      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+      <div className="toast-container">
         {toasts.map(t => (
-          <div key={t.id} style={{ marginBottom: 8, padding: 10, borderRadius: 6, background: t.type === "success" ? "#d4edda" : "#f8d7da", color: t.type === "success" ? "#155724" : "#721c24" }}>
+          <div key={t.id} className={`toast ${t.type}`}>
             {t.message}
           </div>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 20 }}>
-        <section style={{ flex: 1 }}>
-          <h3>Lista</h3>
+      <div className="form-top-layout">
+        <aside className="form-section">
+          <h3>Novo Produto</h3>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div className="form-group">
+              <label>Nome</label>
+              <input type="text" placeholder="Nome do produto" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Preço</label>
+              <input type="number" placeholder="Preço" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Imagem</label>
+              <input type="file" onChange={e => setImageFile(e.target.files[0])} />
+            </div>
+            <button onClick={create} disabled={loading} style={{ marginTop: 8 }}>
+              {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
+            </button>
+          </div>
+        </aside>
+
+        <section>
+          <h3>Lista de Produtos</h3>
           {loading ? <Spinner /> : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table>
               <thead>
                 <tr>
-                  <th style={{ textAlign: "left", padding: 8 }}>Imagem</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Nome</th>
-                  <th style={{ textAlign: "right", padding: 8 }}>Preço</th>
-                  <th style={{ textAlign: "center", padding: 8 }}>Estoque</th>
-                  <th style={{ width: 140 }}>Ações</th>
+                  <th style={{ width: 70 }}>Imagem</th>
+                  <th>Nome</th>
+                  <th style={{ textAlign: "right", width: 120 }}>Preço</th>
+                  <th style={{ textAlign: "center", width: 100 }}>Estoque</th>
+                  <th style={{ width: 140, textAlign: "center" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map(p => (
-                  <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
-                    <td style={{ padding: 8 }}>{p.image ? <img src={p.image} alt={p.name} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : 'Sem imagem'}</td>
-                    <td style={{ padding: 8 }}>{p.name}</td>
-                    <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(p.price || 0).toFixed(2)}</td>
-                    <td style={{ textAlign: "center", padding: 8 }}>{p.stock}</td>
-                    <td style={{ padding: 8 }}>
-                      <button onClick={() => openEdit(p)} style={{ marginRight: 8 }}>Editar</button>
-                      <button onClick={() => remove(p.id)} style={{ color: "#a00" }}>Deletar</button>
+                  <tr key={p.id}>
+                    <td>{p.image ? <img src={p.image} alt={p.name} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : 'Sem imagem'}</td>
+                    <td>{p.name}</td>
+                    <td style={{ textAlign: "right" }}>R$ {parseFloat(p.price || 0).toFixed(2)}</td>
+                    <td style={{ textAlign: "center" }}>{p.stock}</td>
+                    <td style={{ textAlign: "center" }}>
+                      <div className="action-buttons">
+                        <button onClick={() => openEdit(p)}>Editar</button>
+                        <button onClick={() => remove(p.id)} className="delete-btn">Deletar</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -138,18 +163,6 @@ export default function Products() {
             </table>
           )}
         </section>
-
-        <aside style={{ width: 300 }}>
-          <h3>Novo Produto</h3>
-          <div style={{ display: "grid", gap: 8 }}>
-            <input type="text" placeholder="Nome" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-            <input type="number" placeholder="Preço" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
-            <input type="file" onChange={e => setImageFile(e.target.files[0])} />
-            <button onClick={create} disabled={loading}>
-              {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
-            </button>
-          </div>
-        </aside>
       </div>
 
       <ModalForm title="Editar Produto" visible={modalVisible} onClose={() => { setModalVisible(false); setEditing(null); }}>
@@ -164,13 +177,22 @@ function EditModal({ product, onSave, onCancel }) {
   const [price, setPrice] = useState(product.price || "");
   const [imageFile, setImageFile] = useState(null);
   return (
-    <div style={{ display: "grid", gap: 8 }}>
-      <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome" />
-      <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço" step="0.01" min="0" />
-      <input type="file" onChange={e => setImageFile(e.target.files[0])} />
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+    <div>
+      <div className="form-group">
+        <label>Nome</label>
+        <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Nome do produto" />
+      </div>
+      <div className="form-group">
+        <label>Preço</label>
+        <input type="number" value={price} onChange={e => setPrice(e.target.value)} placeholder="Preço" step="0.01" min="0" />
+      </div>
+      <div className="form-group">
+        <label>Imagem</label>
+        <input type="file" onChange={e => setImageFile(e.target.files[0])} />
+      </div>
+      <div className="button-group">
         <button onClick={onCancel}>Cancelar</button>
-        <button onClick={() => onSave(name, price, imageFile)}>Salvar</button>
+        <button onClick={() => onSave(name, price, imageFile)} className="primary" style={{ background: "#646cff", color: "white", border: "none" }}>Salvar</button>
       </div>
     </div>
   );

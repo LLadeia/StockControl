@@ -81,64 +81,31 @@ export default function Production() {
   };
 
   return (
-    <div style={{ padding: 30 }}>
-      <h1>🏭 Produção</h1>
+    <div className="container">
+      <div className="page-header">
+        <h1>🏭 Produção</h1>
+      </div>
 
-      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+      <div className="toast-container">
         {toasts.map(t => (
-          <div key={t.id} style={{ marginBottom: 8, padding: 10, borderRadius: 6, background: t.type === "success" ? "#d4edda" : "#f8d7da", color: t.type === "success" ? "#155724" : "#721c24", fontSize: 14 }}>
+          <div key={t.id} className={`toast ${t.type}`}>
             {t.message}
           </div>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 30 }}>
-        <section style={{ flex: 1 }}>
-          <h3>📋 Histórico de Produções</h3>
-          {loading ? <Spinner /> : (
-            <div style={{ overflowY: "auto", maxHeight: 500 }}>
-              {productions.length === 0 ? (
-                <p style={{ color: "#999" }}>Nenhuma produção registrada</p>
-              ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: "left", padding: 8 }}>Produto</th>
-                      <th style={{ textAlign: "right", padding: 8 }}>Preço Unit.</th>
-                      <th style={{ textAlign: "center", padding: 8 }}>Quantidade</th>
-                      <th style={{ textAlign: "right", padding: 8 }}>Preço Total</th>
-                      <th style={{ textAlign: "left", padding: 8 }}>Data/Hora</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {productions.map(p => (
-                        <tr key={p.id} style={{ borderTop: "1px solid #eee" }}>
-                          <td style={{ padding: 8 }}>{p.product_name}</td>
-                          <td style={{ textAlign: "right", padding: 8 }}>R$ {parseFloat(p.unit_price || 0).toFixed(2)}</td>
-                          <td style={{ textAlign: "center", padding: 8 }}>x{p.quantity}</td>
-                          <td style={{ textAlign: "right", padding: 8, fontWeight: "bold" }}>R$ {parseFloat(p.total_price || 0).toFixed(2)}</td>
-                          <td style={{ padding: 8, fontSize: 12, color: "#666" }}>{formatDate(p.created_at)}</td>
-                        </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          )}
-        </section>
-
-        <aside style={{ width: 380 }}>
+      <div className="form-top-layout">
+        <aside className="form-section">
           <h3>🔧 Produzir Agora</h3>
-          <div style={{ display: "grid", gap: 16, padding: 16, background: "#f9f9f9", borderRadius: 8 }}>
-            <div>
-              <label style={{ display: "block", marginBottom: 6, fontWeight: "bold" }}>Produto</label>
+          <div style={{ display: "grid", gap: 16 }}>
+            <div className="form-group">
+              <label>Produto</label>
               <select
                 value={selectedProduct || ""}
                 onChange={(e) => {
                   setSelectedProduct(e.target.value);
                   checkCanProduce(e.target.value);
                 }}
-                style={{ width: "100%", padding: 10, borderRadius: 4 }}
               >
                 <option value="">Selecione um produto</option>
                 {products.map(p => (
@@ -162,13 +129,13 @@ export default function Production() {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                       <div>
                         <small style={{ color: "#666" }}>Preço Unitário</small>
-                        <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#007bff" }}>
+                        <p style={{ margin: 0, fontSize: "1.4em", fontWeight: "bold", color: "#007bff" }}>
                           R$ {unitCost.toFixed(2)}
                         </p>
                       </div>
                       <div>
                         <small style={{ color: "#666" }}>Preço Total ({quantity}x)</small>
-                        <p style={{ margin: 0, fontSize: 18, fontWeight: "bold", color: "#28a745" }}>
+                        <p style={{ margin: 0, fontSize: "1.4em", fontWeight: "bold", color: "#28a745" }}>
                           R$ {totalCost.toFixed(2)}
                         </p>
                       </div>
@@ -197,26 +164,59 @@ export default function Production() {
               </div>
             )}
 
-            <div>
-              <label style={{ display: "block", marginBottom: 6, fontWeight: "bold" }}>Quantidade</label>
+            <div className="form-group">
+              <label>Quantidade</label>
               <input
                 type="number"
                 min="1"
                 value={quantity}
                 onChange={e => setQuantity(e.target.value)}
-                style={{ width: "100%", padding: 10, borderRadius: 4 }}
               />
             </div>
 
             <button
               onClick={produce}
               disabled={loading || !status?.can_produce}
-              style={{ padding: 12, background: status?.can_produce ? "#007bff" : "#ccc", color: "#fff", border: "none", borderRadius: 4, cursor: status?.can_produce ? "pointer" : "not-allowed", fontSize: 14, fontWeight: "bold" }}
+              style={{ padding: 12, background: status?.can_produce ? "#007bff" : "#ccc", color: "#fff", border: "none", borderRadius: 4, cursor: status?.can_produce ? "pointer" : "not-allowed", fontWeight: "bold", marginTop: 8 }}
             >
               {loading ? <><Spinner size={16} /> Produzindo...</> : "Produzir Agora"}
             </button>
           </div>
         </aside>
+
+        <section>
+          <h3>📋 Histórico de Produções</h3>
+          {loading ? <Spinner /> : (
+            <div style={{ overflowY: "auto", maxHeight: "600px" }}>
+              {productions.length === 0 ? (
+                <p style={{ color: "#999" }}>Nenhuma produção registrada</p>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Produto</th>
+                      <th style={{ textAlign: "right", width: 120 }}>Preço Unit.</th>
+                      <th style={{ textAlign: "center", width: 100 }}>Qtd</th>
+                      <th style={{ textAlign: "right", width: 120 }}>Preço Total</th>
+                      <th style={{ width: 180 }}>Data/Hora</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productions.map(p => (
+                        <tr key={p.id}>
+                          <td>{p.product_name}</td>
+                          <td style={{ textAlign: "right" }}>R$ {parseFloat(p.unit_price || 0).toFixed(2)}</td>
+                          <td style={{ textAlign: "center" }}>x{p.quantity}</td>
+                          <td style={{ textAlign: "right", fontWeight: "bold" }}>R$ {parseFloat(p.total_price || 0).toFixed(2)}</td>
+                          <td style={{ fontSize: "0.9em", color: "#666" }}>{formatDate(p.created_at)}</td>
+                        </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

@@ -89,30 +89,57 @@ export default function RawMaterials() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>🧪 Matérias-Primas</h1>
+    <div className="container">
+      <div className="page-header">
+        <h1>🧪 Matérias-Primas</h1>
+      </div>
 
-      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+      <div className="toast-container">
         {toasts.map(t => (
-          <div key={t.id} style={{ marginBottom: 8, padding: 10, borderRadius: 6, background: t.type === "success" ? "#d4edda" : "#f8d7da", color: t.type === "success" ? "#155724" : "#721c24" }}>
+          <div key={t.id} className={`toast ${t.type}`}>
             {t.message}
           </div>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 20 }}>
-        <section style={{ flex: 1 }}>
-          <h3>Lista</h3>
+      <div className="form-top-layout">
+        <aside className="form-section">
+          <h3>Nova Matéria-Prima</h3>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div className="form-group">
+              <label>Nome</label>
+              <input type="text" placeholder="Nome da matéria-prima" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Preço</label>
+              <input type="number" placeholder="Preço" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Estoque</label>
+              <input type="number" placeholder="Estoque" min="0" step="1" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Imagem</label>
+              <input type="file" onChange={e => setImageFile(e.target.files[0])} />
+            </div>
+            <button onClick={create} disabled={loading} style={{ marginTop: 8 }}>
+              {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
+            </button>
+          </div>
+        </aside>
+
+        <section>
+          <h3>Lista de Matérias-Primas</h3>
           {loading ? <Spinner /> : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table>
               <thead>
                 <tr>
-                  <th style={{ textAlign: "left", padding: 8 }}>Imagem</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Nome</th>
-                  <th style={{ textAlign: "right", padding: 8 }}>Preço Unit.</th>
-                  <th style={{ textAlign: "center", padding: 8 }}>Estoque</th>
-                  <th style={{ textAlign: "right", padding: 8 }}>Valor Total</th>
-                  <th style={{ width: 140 }}>Ações</th>
+                  <th style={{ width: 70 }}>Imagem</th>
+                  <th>Nome</th>
+                  <th style={{ textAlign: "right", width: 120 }}>Preço Unit.</th>
+                  <th style={{ textAlign: "center", width: 100 }}>Estoque</th>
+                  <th style={{ textAlign: "right", width: 120 }}>Valor Total</th>
+                  <th style={{ width: 140, textAlign: "center" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,15 +148,17 @@ export default function RawMaterials() {
                   const stock = parseFloat(i.stock || 0);
                   const totalValue = price * stock;
                   return (
-                    <tr key={i.id} style={{ borderTop: "1px solid #eee" }}>
-                      <td style={{ padding: 8 }}>{i.image ? <img src={i.image} alt={i.name} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : 'Sem imagem'}</td>
-                      <td style={{ padding: 8 }}>{i.name}</td>
-                      <td style={{ textAlign: "right", padding: 8 }}>R$ {price.toFixed(2)}</td>
-                      <td style={{ textAlign: "center", padding: 8 }}>{stock}</td>
-                      <td style={{ textAlign: "right", padding: 8, fontWeight: "bold" }}>R$ {totalValue.toFixed(2)}</td>
-                      <td style={{ padding: 8 }}>
-                        <button onClick={() => openEdit(i)} style={{ marginRight: 8 }}>Editar</button>
-                        <button onClick={() => remove(i.id)} style={{ color: "#a00" }}>Deletar</button>
+                    <tr key={i.id}>
+                      <td>{i.image ? <img src={i.image} alt={i.name} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : 'Sem imagem'}</td>
+                      <td>{i.name}</td>
+                      <td style={{ textAlign: "right" }}>R$ {price.toFixed(2)}</td>
+                      <td style={{ textAlign: "center" }}>{stock}</td>
+                      <td style={{ textAlign: "right", fontWeight: "bold" }}>R$ {totalValue.toFixed(2)}</td>
+                      <td style={{ textAlign: "center" }}>
+                        <div className="action-buttons">
+                          <button onClick={() => openEdit(i)}>Editar</button>
+                          <button onClick={() => remove(i.id)} className="delete-btn">Deletar</button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -138,22 +167,6 @@ export default function RawMaterials() {
             </table>
           )}
         </section>
-
-        <aside style={{ width: 300 }}>
-          <h3>Nova Matéria-Prima</h3>
-          <div style={{ display: "grid", gap: 8 }}>
-            <input type="text" placeholder="Nome" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-            <label>Preço</label>
-            <input type="number" placeholder="Preço" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
-            <label>Estoque</label>
-            <input type="number" placeholder="Estoque" min="0" step="1" value={form.stock} onChange={e => setForm({ ...form, stock: e.target.value })} />
-            <label>Imagem</label>
-            <input type="file" onChange={e => setImageFile(e.target.files[0])} />
-            <button onClick={create} disabled={loading}>
-              {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
-            </button>
-          </div>
-        </aside>
       </div>
 
       <ModalForm title="Editar Matéria-Prima" visible={modalVisible} onClose={() => { setModalVisible(false); setEditing(null); }}>
@@ -167,18 +180,26 @@ function EditModal({ item, onSave, onCancel }) {
   const [values, setValues] = useState({ name: item.name, stock: item.stock, price: item.price || "" });
   const [imageFile, setImageFile] = useState(null);
   return (
-    <div style={{ display: "grid", gap: 8 }}>
-      <label>Nome</label>
-      <input type="text" value={values.name} onChange={e => setValues({ ...values, name: e.target.value })} />
-      <label>Estoque</label>
-      <input type="number" min="0" step="0.01" value={values.stock} onChange={e => setValues({ ...values, stock: e.target.value })} />
-      <label>Preço</label>
-      <input type="number" min="0" step="0.01" value={values.price} onChange={e => setValues({ ...values, price: e.target.value })} />
-      <label>Imagem</label>
-      <input type="file" onChange={e => setImageFile(e.target.files[0])} />
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+    <div>
+      <div className="form-group">
+        <label>Nome</label>
+        <input type="text" value={values.name} onChange={e => setValues({ ...values, name: e.target.value })} />
+      </div>
+      <div className="form-group">
+        <label>Estoque</label>
+        <input type="number" min="0" step="1" value={values.stock} onChange={e => setValues({ ...values, stock: e.target.value })} />
+      </div>
+      <div className="form-group">
+        <label>Preço</label>
+        <input type="number" min="0" step="0.01" value={values.price} onChange={e => setValues({ ...values, price: e.target.value })} />
+      </div>
+      <div className="form-group">
+        <label>Imagem</label>
+        <input type="file" onChange={e => setImageFile(e.target.files[0])} />
+      </div>
+      <div className="button-group">
         <button onClick={onCancel}>Cancelar</button>
-        <button onClick={() => onSave(values, imageFile)}>Salvar</button>
+        <button onClick={() => onSave(values, imageFile)} className="primary" style={{ background: "#646cff", color: "white", border: "none" }}>Salvar</button>
       </div>
     </div>
   );

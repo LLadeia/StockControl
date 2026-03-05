@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "/src/api/api.js";
 import Spinner from "/src/components/Spinner.jsx";
 import ModalForm from "/src/components/ModalForm.jsx";
+import EditForm from "/src/pages/EditForm.jsx";
 
 export default function ProductRawMaterials() {
   const [products, setProducts] = useState([]);
@@ -19,8 +20,6 @@ export default function ProductRawMaterials() {
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => { loadData(); }, []);
-
-  const commonInput = { width: "100%", padding: 8 };
 
   const loadData = async () => {
     setLoading(true);
@@ -133,40 +132,77 @@ export default function ProductRawMaterials() {
     : associations;
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Adicionar Matérias-Primas ao Produto</h1>
+    <div className="container">
+      <div className="page-header">
+        <h1>🔗 Associar Matérias-Primas ao Produto</h1>
+      </div>
 
-      <div style={{ position: "fixed", top: 16, right: 16, zIndex: 9999 }}>
+      <div className="toast-container">
         {toasts.map(t => (
-          <div key={t.id} style={{ marginBottom: 8, padding: 10, borderRadius: 6, background: t.type === "success" ? "#d4edda" : "#f8d7da", color: t.type === "success" ? "#155724" : "#721c24" }}>
+          <div key={t.id} className={`toast ${t.type}`}>
             {t.message}
           </div>
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 20 }}>
-        <section style={{ flex: 1 }}>
+      <div className="form-top-layout">
+        <aside className="form-section">
+          <h3>Adicionar Associação</h3>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div className="form-group">
+              <label>Produto</label>
+              <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
+                <option value="">Selecione um produto</option>
+                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Matéria-Prima</label>
+              <select value={selectedMaterial} onChange={e => setSelectedMaterial(e.target.value)}>
+                <option value="">Selecione uma matéria-prima</option>
+                {materials.map(m => <option key={m.id} value={m.id}>{m.name} (estoque: {m.stock})</option>)}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Quantidade Necessária</label>
+              <input type="number" min="0.01" step="0.01" value={quantity} onChange={e => setQuantity(e.target.value)} />
+            </div>
+
+            <div className="form-group">
+              <label>Valor da Fabricação</label>
+              <input type="number" min="0.00" step="0.01" value={manufacturingPrice} onChange={e => setManufacturingPrice(e.target.value)} />
+            </div>
+
+            <button onClick={associate} disabled={loading} style={{ marginTop: 8 }}>
+              {loading ? <><Spinner size={16} /> Adicionando</> : "Adicionar Associação"}
+            </button>
+          </div>
+        </aside>
+
+        <section>
           <h3>Lista de Matérias-Primas por Produto</h3>
           
-            <div style={{ marginBottom: 16 }}>
-            <label style={{ display: "block", marginBottom: 6 }}>Filtrar por Produto</label>
-            <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} style={commonInput}>
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <label>Filtrar por Produto</label>
+            <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)}>
               <option value="">-- Listar Todos --</option>
               {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
 
           {loading ? <Spinner /> : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table>
               <thead>
                 <tr>
-                  <th style={{ textAlign: "left", padding: 8 }}>Produto</th>
-                  <th style={{ textAlign: "left", padding: 8 }}>Matéria-prima</th>
-                  <th style={{ textAlign: "right", padding: 8 }}>Preço Mat.</th>
-                  <th style={{ textAlign: "center", padding: 8 }}>Qtd</th>
-                  <th style={{ textAlign: "right", padding: 8 }}>valor da fabricação</th>
-                  <th style={{ textAlign: "right", padding: 8 }}>Custo Total</th>
-                  <th style={{ width: 140 }}>Ações</th>
+                  <th>Produto</th>
+                  <th>Matéria-Prima</th>
+                  <th style={{ textAlign: "right", width: 100 }}>Preço Mat.</th>
+                  <th style={{ textAlign: "center", width: 80 }}>Qtd</th>
+                  <th style={{ textAlign: "right", width: 120 }}>Fab.</th>
+                  <th style={{ textAlign: "right", width: 120 }}>Custo Total</th>
+                  <th style={{ width: 140, textAlign: "center" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -177,16 +213,18 @@ export default function ProductRawMaterials() {
                   const manufacturing = parseFloat(a.manufacturing_price || 0);
                   const totalCost = materialPrice * parseFloat(a.quantity) + (manufacturing || 0);
                   return (
-                    <tr key={a.id} style={{ borderTop: "1px solid #eee" }}>
-                      <td style={{ padding: 8 }}>{a.product_name || a.product}</td>
-                      <td style={{ padding: 8 }}>{a.raw_material_name || a.raw_material}</td>
-                      <td style={{ textAlign: "right", padding: 8 }}>R$ {materialPrice.toFixed(2)}</td>
-                      <td style={{ textAlign: "center", padding: 8 }}>{a.quantity}</td>
-                      <td style={{ textAlign: "right", padding: 8 }}>R$ {(parseFloat(a.manufacturing_price) || 0).toFixed(2)}</td>
-                      <td style={{ textAlign: "right", padding: 8, fontWeight: "bold" }}>R$ {Number(totalCost || 0).toFixed(2)}</td>
-                      <td style={{ padding: 8 }}>
-                        <button onClick={() => openEdit(a)} style={{ marginRight: 8 }}>Editar</button>
-                        <button onClick={() => removeAssociation(a.id)} style={{ color: "#a00" }}>Deletar</button>
+                    <tr key={a.id}>
+                      <td>{a.product_name || a.product}</td>
+                      <td>{a.raw_material_name || a.raw_material}</td>
+                      <td style={{ textAlign: "right" }}>R$ {materialPrice.toFixed(2)}</td>
+                      <td style={{ textAlign: "center" }}>{a.quantity}</td>
+                      <td style={{ textAlign: "right" }}>R$ {(parseFloat(a.manufacturing_price) || 0).toFixed(2)}</td>
+                      <td style={{ textAlign: "right", fontWeight: "bold" }}>R$ {Number(totalCost || 0).toFixed(2)}</td>
+                      <td style={{ textAlign: "center" }}>
+                        <div className="action-buttons">
+                          <button onClick={() => openEdit(a)}>Editar</button>
+                          <button onClick={() => removeAssociation(a.id)} className="delete-btn">Deletar</button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -195,75 +233,15 @@ export default function ProductRawMaterials() {
             </table>
           )}
         </section>
-
-        <aside style={{ width: 340 }}>
-          <h3>Adicionar Associação</h3>
-          <div style={{ display: "grid", gap: 8 }}>
-              <div>
-              <label style={{ display: "block", marginBottom: 4 }}>Produto</label>
-              <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} style={commonInput}>
-                <option value="">Selecione um produto</option>
-                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 4 }}>Matéria-Prima</label>
-              <select value={selectedMaterial} onChange={e => setSelectedMaterial(e.target.value)} style={commonInput}>
-                <option value="">Selecione uma matéria-prima</option>
-                {materials.map(m => <option key={m.id} value={m.id}>{m.name} (estoque: {m.stock})</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: 4 }}>Quantidade Necessária</label>
-              <input type="number" min="0.01" step="0.01" value={quantity} onChange={e => setQuantity(e.target.value)} style={commonInput} />
-            </div>
-              <div>              
-              <label style={{ display: "block", marginBottom: 4 }}>Valor da fabricação</label>
-              <input type="number" min="0.00" step="0.01" value={manufacturingPrice} onChange={e => setManufacturingPrice(e.target.value)} style={commonInput} />
-              </div>
-
-            <button onClick={associate} disabled={loading} style={{ padding: 10, background: "#007bff", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer" }}>
-              {loading ? <><Spinner size={16} /> Adicionando</> : "Adicionar Associação"}
-            </button>
-          </div>
-        </aside>
       </div>
+
+      <div>
 
       <ModalForm title="Editar Quantidade" visible={modalVisible} onClose={() => { setModalVisible(false); setEditing(null); }}>
         {editing && <EditForm assoc={editing} materials={materials} products={products} onCancel={() => { setModalVisible(false); setEditing(null); }} onSave={saveEdit} />}
       </ModalForm>
     </div>
-  );
-}
 
-function EditForm({ assoc, onSave, onCancel }) {
-  const [q, setQ] = useState(String(assoc.quantity ?? ""));
-  const [manuf, setManuf] = useState(assoc.manufacturing_price ?? "");
-
-  const handleSave = () => {
-    const payload = {
-      ...assoc,
-      quantity: Number(q),
-      manufacturing_price: manuf === "" ? null : Number(manuf)
-    };
-    onSave(payload);
-  };
-
-  return (
-    <div style={{ display: "grid", gap: 8 }}>
-      <div><strong>Produto:</strong> {assoc.product_name || assoc.product}</div>
-      <div><strong>Matéria-prima:</strong> {assoc.raw_material_name || assoc.raw_material}</div>
-      <label>Quantidade</label>
-      <input type="number" step="0.01" value={q} onChange={e => setQ(e.target.value)} style={{ padding: 8 }} />
-      <label>Valor da fabricação</label>
-      <input type="number" step="0.01" value={manuf ?? ""} onChange={e => setManuf(e.target.value)} style={{ padding: 8 }} />
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-        <button onClick={onCancel}>Cancelar</button>
-        <button onClick={handleSave}>Salvar</button>
-      </div>
     </div>
   );
 }
-

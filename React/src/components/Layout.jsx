@@ -11,7 +11,7 @@ export default function Layout({ children }) {
   return (
     <>
       {showNavbar && <Navbar />}
-      <main style={{ padding: 30 }}>
+      <main>
         {children}
       </main>
     </>

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import "../styles/navbar.css";
 
 export default function Navbar() {
   const [isSuperUser, setIsSuperUser] = useState(false);
@@ -18,55 +19,40 @@ export default function Navbar() {
   };
 
   return (
-    <nav style={{ 
-      padding: "15px 20px", 
-      background: "#222", 
-      color: "#fff",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }}>
-      <div>
-        <Link to="/" style={{ marginRight: 15, color: "#fff", textDecoration: "none" }}>
+    <nav className="navbar">
+      <div className="navbar-links">
+        <Link to="/" className="nav-link">
           🏠 Dashboard
         </Link>
-        <Link to="/products" style={{ marginRight: 15, color: "#fff", textDecoration: "none" }}>
+        <Link to="/products" className="nav-link">
           📦 Produtos
         </Link>
-        <Link to="/raw-materials" style={{ marginRight: 15, color: "#fff", textDecoration: "none" }}>
+        <Link to="/raw-materials" className="nav-link">
           🧪 Matérias-Primas
         </Link>
-        <Link to="/relations" style={{ marginRight: 15, color: "#fff", textDecoration: "none" }}>
+        <Link to="/relations" className="nav-link">
           🔗 Associação
         </Link>
-        <Link to="/production" style={{ marginRight: 15, color: "#fff", textDecoration: "none" }}>
+        <Link to="/production" className="nav-link">
           🏭 Produção
         </Link>
         
         {isSuperUser && (
-          <Link to="/auditory" style={{ marginRight: 15, color: "#ffc107", textDecoration: "none", fontWeight: "bold" }}>
+          <Link to="/auditory" className="nav-link admin-link">
             🔍 Auditoria
           </Link>
         )}
       </div>
 
-      <div>
+      <div className="navbar-actions">
         {isSuperUser && (
-          <span style={{ marginRight: "15px", color: "#ffc107", fontWeight: "bold" }}>
+          <span className="admin-badge">
             👤 Admin
           </span>
         )}
         <button
           onClick={handleLogout}
-          style={{
-            padding: "8px 15px",
-            backgroundColor: "#dc3545",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "14px"
-          }}
+          className="logout-btn"
         >
           🚪 Sair
         </button>
