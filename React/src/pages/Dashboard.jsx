@@ -1,33 +1,38 @@
 import { Link } from "react-router-dom";
 
+const cards = [
+  { to: "/products",      icon: "▦",  title: "Produtos",          desc: "Cadastrar e gerenciar produtos" },
+  { to: "/raw-materials", icon: "⬡",  title: "Matérias-Primas",   desc: "Controlar estoque de insumos" },
+  { to: "/relations",     icon: "⬡",  title: "Associações",       desc: "Vincular matérias aos produtos" },
+  { to: "/production",    icon: "◈",  title: "Produção",          desc: "Planejar e registrar produções" },
+];
+
 export default function Dashboard() {
   return (
-    <div className="container">
-      <div className="page-header">
-        <h1>📊 Sistema de Produção</h1>
+    <div className="container" style={{ paddingTop: 40 }}>
+      <div style={{ marginBottom: 36 }}>
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75em", letterSpacing: "0.1em", color: "var(--text3)", textTransform: "uppercase", marginBottom: 8 }}>
+          Sistema de Controle
+        </p>
+        <h1 style={{ fontSize: "2rem", marginBottom: 6 }}>Painel de Produção</h1>
+        <p style={{ color: "var(--text3)", fontSize: "0.9em" }}>Gerencie produtos, insumos e planeje sua produção</p>
       </div>
 
-      <nav style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 20 }}>
-        <Link to="/products" className="dashboard-card">
-          <div style={{ fontSize: "2.5em", marginBottom: 10 }}>📦</div>
-          <h3 style={{ margin: "0 0 8px 0" }}>Cadastro de Produtos</h3>
-          <p style={{ margin: 0, color: "#666", fontSize: "0.9em" }}>Gerenciar produtos</p>
-        </Link>
-        <Link to="/raw-materials" className="dashboard-card">
-          <div style={{ fontSize: "2.5em", marginBottom: 10 }}>🧪</div>
-          <h3 style={{ margin: "0 0 8px 0" }}>Matérias-Primas</h3>
-          <p style={{ margin: 0, color: "#666", fontSize: "0.9em" }}>Gerenciar matérias-primas</p>
-        </Link>
-        <Link to="/relations" className="dashboard-card">
-          <div style={{ fontSize: "2.5em", marginBottom: 10 }}>🔗</div>
-          <h3 style={{ margin: "0 0 8px 0" }}>Associações</h3>
-          <p style={{ margin: 0, color: "#666", fontSize: "0.9em" }}>Associar matérias aos produtos</p>
-        </Link>
-        <Link to="/production" className="dashboard-card">
-          <div style={{ fontSize: "2.5em", marginBottom: 10 }}>🏭</div>
-          <h3 style={{ margin: "0 0 8px 0" }}>Produção</h3>
-          <p style={{ margin: 0, color: "#666", fontSize: "0.9em" }}>Registrar produção</p>
-        </Link>
+      <nav style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        {cards.map(c => (
+          <Link key={c.to} to={c.to} className="dashboard-card">
+            <div style={{
+              width: 38, height: 38, borderRadius: 8,
+              background: "var(--accent-glow)", border: "1px solid rgba(79,142,247,0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: "1.1em", color: "var(--accent)", marginBottom: 14, fontFamily: "monospace"
+            }}>
+              {c.icon}
+            </div>
+            <h3>{c.title}</h3>
+            <p>{c.desc}</p>
+          </Link>
+        ))}
       </nav>
     </div>
   );

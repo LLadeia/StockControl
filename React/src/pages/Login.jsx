@@ -15,115 +15,94 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
-      const response = await axios.post(`${API_URL}/token/`, {
-        username,
-        password
-      });
-
-      const access_token = response.data.access;
-      localStorage.setItem("token", access_token);
+      const response = await axios.post(`${API_URL}/token/`, { username, password });
+      localStorage.setItem("token", response.data.access);
       localStorage.setItem("user_type", "user");
-      
-      // Redirecionar para dashboard
       navigate("/Dashboard");
     } catch (err) {
-      setError(err.response?.data?.detail || "Erro ao fazer login");
+      setError(err.response?.data?.detail || "Credenciais inválidas");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ 
-      width: "100%",
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "#f5f5f5",
+    <div style={{
+      width: "100%", minHeight: "100vh",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "var(--bg)",
+      backgroundImage: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(79,142,247,0.12) 0%, transparent 70%)",
       padding: "20px"
     }}>
-      <div style={{
-        backgroundColor: "#fff",
-        padding: "40px",
-        borderRadius: "12px",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-        width: "100%",
-        maxWidth: "420px"
-      }}>
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <h1 style={{ margin: "0 0 12px 0", color: "#333", fontSize: "2em" }}>🔐 Login</h1>
-          <p style={{ color: "#666", margin: 0, fontSize: "0.95em" }}>Sistema de Produção</p>
+      <div style={{ width: "100%", maxWidth: 400 }}>
+
+        <div style={{ textAlign: "center", marginBottom: 36 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: "var(--accent-glow)", border: "1px solid rgba(79,142,247,0.3)",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            fontSize: "1.4em", marginBottom: 16
+          }}>⬡</div>
+          <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: "1.5rem", marginBottom: 6 }}>StockControl</h1>
+          <p style={{ color: "var(--text3)", fontSize: "0.88em" }}>Sistema de Controle de Produção</p>
         </div>
 
-        <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div className="form-group">
-            <label>Usuário:</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Digite seu usuário"
-            />
-          </div>
+        <div style={{
+          background: "var(--bg2)", border: "1px solid var(--border)",
+          borderRadius: 12, padding: 28
+        }}>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div className="form-group">
+              <label>Usuário</label>
+              <input
+                type="text"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                placeholder="Digite seu usuário"
+                autoFocus
+              />
+            </div>
+            <div className="form-group">
+              <label>Senha</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Digite sua senha"
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Senha:</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite sua senha"
-            />
-          </div>
+            {error && (
+              <div style={{
+                padding: "10px 14px", background: "var(--red-bg)",
+                border: "1px solid rgba(247,93,93,0.25)", borderRadius: 7,
+                color: "var(--red)", fontSize: "0.86em"
+              }}>
+                {error}
+              </div>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              marginTop: "8px",
-              padding: "12px",
-              backgroundColor: loading ? "#ccc" : "#007bff",
-              color: "white",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "1em",
-              fontWeight: "bold",
-              cursor: loading ? "not-allowed" : "pointer",
-              transition: "background-color 0.2s"
-            }}
-          >
-            {loading ? "🔄 Entrando..." : "🚀 Entrar"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="primary"
+              style={{ marginTop: 4, padding: "0.7em 1.4em", fontSize: "0.95em" }}
+            >
+              {loading ? "Entrando…" : "Entrar"}
+            </button>
+          </form>
 
-        {error && (
           <div style={{
-            marginTop: "20px",
-            padding: "12px 16px",
-            backgroundColor: "#f8d7da",
-            border: "1px solid #f5c6cb",
-            borderRadius: "6px",
-            color: "#721c24",
-            fontSize: "0.95em"
+            marginTop: 22, paddingTop: 18,
+            borderTop: "1px solid var(--border)",
+            fontSize: "0.8em", color: "var(--text3)"
           }}>
-            {error}
-          </div>
-        )}
-
-        <div style={{ marginTop: "32px", paddingTop: "24px", borderTop: "1px solid #eee", color: "#666", fontSize: "0.9em" }}>
-          <p style={{ margin: "0 0 12px 0", fontWeight: "600" }}>
-            📋 Credenciais de Teste:
-          </p>
-          <div style={{ background: "#f9f9f9", padding: "12px", borderRadius: "6px", marginBottom: "8px" }}>
-            <p style={{ margin: "0 0 4px 0" }}>
-              👤 Usuário: <code style={{ background: "#fff", padding: "2px 6px", borderRadius: "3px", fontWeight: "bold" }}>testuser</code>
-            </p>
-            <p style={{ margin: 0 }}>
-              🔑 Senha: <code style={{ background: "#fff", padding: "2px 6px", borderRadius: "3px", fontWeight: "bold" }}>testpass123</code>
-            </p>
+            <p style={{ marginBottom: 8, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em" }}>CREDENCIAIS DE TESTE</p>
+            <div style={{ display: "flex", gap: 16 }}>
+              <span>user: <code style={{ color: "var(--text2)" }}>testuser</code></span>
+              <span>senha: <code style={{ color: "var(--text2)" }}>testpass123</code></span>
+            </div>
           </div>
         </div>
       </div>

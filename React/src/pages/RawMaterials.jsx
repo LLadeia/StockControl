@@ -122,24 +122,26 @@ export default function RawMaterials() {
               <label>Imagem</label>
               <input type="file" onChange={e => setImageFile(e.target.files[0])} />
             </div>
-            <button onClick={create} disabled={loading} style={{ marginTop: 8 }}>
-              {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
+            <button onClick={create} disabled={loading} className="primary" style={{ marginTop: 4 }}>
+              {loading ? <><Spinner size={16} /> Salvando…</> : "+ Criar Matéria-Prima"}
             </button>
           </div>
         </aside>
 
-        <section>
-          <h3>Lista de Matérias-Primas</h3>
-          {loading ? <Spinner /> : (
+        <div className="section-table">
+          <h3>Estoque de Matérias-Primas</h3>
+          {loading ? (
+            <div style={{ padding: 24, display: "flex", justifyContent: "center" }}><Spinner /></div>
+          ) : (
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: 70 }}>Imagem</th>
+                  <th style={{ width: 60 }}>Img</th>
                   <th>Nome</th>
-                  <th style={{ textAlign: "right", width: 120 }}>Preço Unit.</th>
-                  <th style={{ textAlign: "center", width: 100 }}>Estoque</th>
+                  <th style={{ textAlign: "right", width: 110 }}>Preço Unit.</th>
+                  <th style={{ textAlign: "center", width: 90 }}>Estoque</th>
                   <th style={{ textAlign: "right", width: 120 }}>Valor Total</th>
-                  <th style={{ width: 140, textAlign: "center" }}>Ações</th>
+                  <th style={{ width: 140, textAlign: "right" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -149,13 +151,13 @@ export default function RawMaterials() {
                   const totalValue = price * stock;
                   return (
                     <tr key={i.id}>
-                      <td>{i.image ? <img src={i.image} alt={i.name} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : 'Sem imagem'}</td>
+                      <td>{i.image ? <img src={i.image} alt={i.name} style={{ width: 36, height: 36 }} /> : <span style={{ color: "var(--text3)", fontSize: "0.8em" }}>—</span>}</td>
                       <td>{i.name}</td>
-                      <td style={{ textAlign: "right" }}>R$ {price.toFixed(2)}</td>
-                      <td style={{ textAlign: "center" }}>{stock}</td>
-                      <td style={{ textAlign: "right", fontWeight: "bold" }}>R$ {totalValue.toFixed(2)}</td>
-                      <td style={{ textAlign: "center" }}>
-                        <div className="action-buttons">
+                      <td style={{ textAlign: "right", fontFamily: "'DM Mono', monospace", fontSize: "0.88em" }}>R$ {price.toFixed(2)}</td>
+                      <td style={{ textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: "0.88em" }}>{stock}</td>
+                      <td style={{ textAlign: "right", fontFamily: "'DM Mono', monospace", fontSize: "0.88em", color: "var(--green)", fontWeight: 600 }}>R$ {totalValue.toFixed(2)}</td>
+                      <td style={{ textAlign: "right" }}>
+                        <div className="action-buttons" style={{ justifyContent: "flex-end" }}>
                           <button onClick={() => openEdit(i)}>Editar</button>
                           <button onClick={() => remove(i.id)} className="delete-btn">Deletar</button>
                         </div>
@@ -166,7 +168,7 @@ export default function RawMaterials() {
               </tbody>
             </table>
           )}
-        </section>
+        </div>
       </div>
 
       <ModalForm title="Editar Matéria-Prima" visible={modalVisible} onClose={() => { setModalVisible(false); setEditing(null); }}>

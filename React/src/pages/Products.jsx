@@ -118,41 +118,43 @@ export default function Products() {
               <input type="text" placeholder="Nome do produto" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             </div>
             <div className="form-group">
-              <label>Preço</label>
-              <input type="number" placeholder="Preço" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
+              <label>Preço (R$)</label>
+              <input type="number" placeholder="0,00" step="0.01" min="0" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
             </div>
             <div className="form-group">
               <label>Imagem</label>
               <input type="file" onChange={e => setImageFile(e.target.files[0])} />
             </div>
-            <button onClick={create} disabled={loading} style={{ marginTop: 8 }}>
-              {loading ? <><Spinner size={16} /> Salvando</> : "Criar"}
+            <button onClick={create} disabled={loading} className="primary" style={{ marginTop: 4 }}>
+              {loading ? <><Spinner size={16} /> Salvando…</> : "+ Criar Produto"}
             </button>
           </div>
         </aside>
 
-        <section>
-          <h3>Lista de Produtos</h3>
-          {loading ? <Spinner /> : (
+        <div className="section-table">
+          <h3>Produtos Cadastrados</h3>
+          {loading ? (
+            <div style={{ padding: 24, display: "flex", justifyContent: "center" }}><Spinner /></div>
+          ) : (
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: 70 }}>Imagem</th>
+                  <th style={{ width: 60 }}>Img</th>
                   <th>Nome</th>
                   <th style={{ textAlign: "right", width: 120 }}>Preço</th>
-                  <th style={{ textAlign: "center", width: 100 }}>Estoque</th>
-                  <th style={{ width: 140, textAlign: "center" }}>Ações</th>
+                  <th style={{ textAlign: "center", width: 90 }}>Estoque</th>
+                  <th style={{ width: 140, textAlign: "right" }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {products.map(p => (
                   <tr key={p.id}>
-                    <td>{p.image ? <img src={p.image} alt={p.name} style={{ width: 50, height: 50, objectFit: 'cover' }} /> : 'Sem imagem'}</td>
+                    <td>{p.image ? <img src={p.image} alt={p.name} style={{ width: 36, height: 36 }} /> : <span style={{ color: "var(--text3)", fontSize: "0.8em" }}>—</span>}</td>
                     <td>{p.name}</td>
-                    <td style={{ textAlign: "right" }}>R$ {parseFloat(p.price || 0).toFixed(2)}</td>
-                    <td style={{ textAlign: "center" }}>{p.stock}</td>
-                    <td style={{ textAlign: "center" }}>
-                      <div className="action-buttons">
+                    <td style={{ textAlign: "right", fontFamily: "'DM Mono', monospace", fontSize: "0.88em", color: "var(--green)" }}>R$ {parseFloat(p.price || 0).toFixed(2)}</td>
+                    <td style={{ textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: "0.88em" }}>{p.stock ?? "—"}</td>
+                    <td style={{ textAlign: "right" }}>
+                      <div className="action-buttons" style={{ justifyContent: "flex-end" }}>
                         <button onClick={() => openEdit(p)}>Editar</button>
                         <button onClick={() => remove(p.id)} className="delete-btn">Deletar</button>
                       </div>
@@ -162,7 +164,7 @@ export default function Products() {
               </tbody>
             </table>
           )}
-        </section>
+        </div>
       </div>
 
       <ModalForm title="Editar Produto" visible={modalVisible} onClose={() => { setModalVisible(false); setEditing(null); }}>
