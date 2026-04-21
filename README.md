@@ -19,15 +19,21 @@ O **StockControl** é um sistema de gestão de produção industrial desenvolvid
 
 ## 🖥️ Screenshots
 
-> _Substitua as imagens abaixo por prints reais da sua interface_
+| Login |
+|-------|
+| <img width="1335" height="861" alt="image" src="https://github.com/user-attachments/assets/e10ba17a-b494-4658-8e9b-5c4165834fd9" />
 
-| Login | Dashboard |
-|-------|-----------|
-| ![login](https://via.placeholder.com/400x250?text=Login) | ![dashboard](https://via.placeholder.com/400x250?text=Dashboard) |
+| Dashboard |
+|-----------|
+| <img width="1911" height="854" alt="image" src="https://github.com/user-attachments/assets/0520e09c-cd0f-4697-91ee-df3da2f0d033" />
 
-| Produtos | Produção |
-|----------|----------|
-| ![produtos](https://via.placeholder.com/400x250?text=Produtos) | ![producao](https://via.placeholder.com/400x250?text=Producao) |
+| Produtos |
+|----------|
+| <img width="1919" height="873" alt="image" src="https://github.com/user-attachments/assets/c1599114-3de7-4ce7-bc54-c4368c46f22e" />
+
+| Produção |
+|----------|
+|<img width="1919" height="889" alt="image" src="https://github.com/user-attachments/assets/62271e55-7716-4e43-9520-19c3797253a2" />
 
 ---
 
