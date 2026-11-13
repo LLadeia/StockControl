@@ -6,3 +6,7 @@ addopts = "-ra --strict-markers"
 # Um teste marcado como falha esperada que passe a funcionar quebra a suíte:
 # é o aviso para remover a marcação quando o bug for corrigido.
 xfail_strict = true
+filterwarnings = [
+    # O WhiteNoise avisa que STATIC_ROOT não existe; os testes não rodam collectstatic.
+    "ignore:No directory at:UserWarning",
+]

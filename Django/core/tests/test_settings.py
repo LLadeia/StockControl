@@ -31,6 +31,10 @@ print(json.dumps({
     "ALLOWED_HOSTS": settings.ALLOWED_HOSTS,
     "CORS_ALLOWED_ORIGINS": settings.CORS_ALLOWED_ORIGINS,
     "CORS_ALLOW_ALL_ORIGINS": settings.CORS_ALLOW_ALL_ORIGINS,
+    "DATABASE": {
+        key: settings.DATABASES["default"][key]
+        for key in ("ENGINE", "NAME", "USER", "PASSWORD", "HOST", "PORT")
+    },
 }))
 """
 
@@ -104,6 +108,32 @@ class TestDesenvolvimento:
         settings = load_settings(DEBUG="True", SECRET_KEY="minha-chave-local")
 
         assert settings["SECRET_KEY"] == "minha-chave-local"
+
+
+class TestBancoDeDados:
+    def test_conexao_vem_das_variaveis_postgres(self):
+        settings = load_settings(
+            SECRET_KEY=STRONG_KEY,
+            POSTGRES_DB="estoque",
+            POSTGRES_USER="app",
+            POSTGRES_PASSWORD="segredo",
+            POSTGRES_HOST="db.interno",
+            POSTGRES_PORT="6543",
+        )
+
+        assert settings["DATABASE"] == {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "estoque",
+            "USER": "app",
+            "PASSWORD": "segredo",
+            "HOST": "db.interno",
+            "PORT": "6543",
+        }
+
+    def test_a_suite_roda_contra_postgresql(self, db):
+        from django.db import connection
+
+        assert connection.vendor == "postgresql"
 
 
 class TestListas:
