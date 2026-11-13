@@ -118,10 +118,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Os padrões batem com o banco de desenvolvimento do docker-compose.yml
+# (`docker compose up -d db`). Em qualquer outro ambiente, defina as variáveis.
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('POSTGRES_DB', default='stockcontrol'),
+        'USER': config('POSTGRES_USER', default='stockcontrol'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='stockcontrol'),
+        'HOST': config('POSTGRES_HOST', default='localhost'),
+        'PORT': config('POSTGRES_PORT', default='5432'),
     }
 }
 
