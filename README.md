@@ -58,7 +58,9 @@ O **StockControl** é um sistema de gestão de produção industrial desenvolvid
 | Django | 5.x | Framework web |
 | Django REST Framework | 3.x | API RESTful |
 | Simple JWT | — | Autenticação via token JWT |
+| django-simple-history | 3.x | Auditoria de alterações |
 | SQLite | — | Banco de dados |
+| pytest + pytest-django | — | Testes automatizados |
 
 ### Front-end
 | Tecnologia | Versão | Uso |
@@ -90,8 +92,11 @@ stockcontrol/
 │   │   ├── views.py                 # ViewSets + can_produce / produce
 │   │   ├── urls.py
 │   │   ├── admin.py
-│   │   └── tests.py
-│   └── manage.py
+│   │   └── tests/                   # Testes da API (pytest)
+│   ├── manage.py
+│   ├── pyproject.toml               # Configuração do pytest
+│   ├── requirements.txt             # Dependências da aplicação
+│   └── requirements-dev.txt         # + dependências de teste
 │
 └── React/                           # Front-end
     ├── public/
@@ -214,6 +219,38 @@ Interface disponível em: `http://localhost:5173`
 Usuário: testuser
 Senha:   testpass123
 ```
+
+---
+
+## 🧪 Testes
+
+Os testes ficam em `Django/production/tests/` e usam **pytest** com **pytest-django**. Eles exercitam a API por HTTP (autenticação JWT, CRUDs e as ações `can_produce` e `produce`) em um banco de testes criado e descartado a cada execução.
+
+```bash
+cd Django
+source venv/bin/activate                 # o mesmo ambiente virtual do back-end
+pip install -r requirements-dev.txt
+
+pytest                                   # roda a suíte
+pytest --cov=production --cov=core       # com relatório de cobertura
+```
+
+Resultado esperado hoje: `99 passed, 13 xfailed`.
+
+### Bugs conhecidos (falhas esperadas)
+
+Os testes marcados com `xfail` descrevem o comportamento **correto** de pontos em que a aplicação ainda falha. Eles documentam os bugs sem quebrar a suíte; quando um bug for corrigido, o teste passa a funcionar e a marcação deve ser removida (`xfail_strict` faz a suíte acusar isso).
+
+| Onde | Problema |
+|---|---|
+| `produce` | Quantidade inválida (`"abc"`, `null`, `"2.5"`...) gera erro 500 em vez de 400 |
+| `produce` | Quantidade zero ou negativa é aceita (a negativa devolve matéria-prima ao estoque) |
+| `produce` | Falha ao creditar o estoque do produto é ignorada e a produção é dada como concluída |
+| `produce` | Estoque em ponto flutuante: `3 × 0,1 > 0,3` recusa uma produção que deveria caber |
+| `produce` | Matéria-prima repetida na ficha técnica: só o débito da última linha é gravado |
+| Migrações | Geradas com Django 6; no Django 5 do `requirements.txt` há uma migração pendente |
+
+Para ver cada falha em detalhe: `pytest --runxfail`.
 
 ---
 

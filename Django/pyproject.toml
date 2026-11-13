@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "core.settings"
+testpaths = ["production/tests"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+# Um teste marcado como falha esperada que passe a funcionar quebra a suíte:
+# é o aviso para remover a marcação quando o bug for corrigido.
+xfail_strict = true
