@@ -14,20 +14,39 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
+from decouple import Csv, config
+from django.core.exceptions import ImproperlyConfigured
+
+from .secret_key import DEVELOPMENT_KEY, weak_secret_key_reason
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# Configuração por variáveis de ambiente
+#
+# Os valores vêm do ambiente ou de um arquivo .env (veja .env.example).
+# Sem configuração nenhuma, os padrões são os de produção: DEBUG desligado
+# e nenhuma origem liberada no CORS.
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-1-4_@x^h5m&c@3v(vfe()%3^2moy#m$wmqxf!q96#$!of$&j5^'
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = config('SECRET_KEY', default='')
 
-ALLOWED_HOSTS = []
+if DEBUG:
+    SECRET_KEY = SECRET_KEY or DEVELOPMENT_KEY
+else:
+    _weak_reason = weak_secret_key_reason(SECRET_KEY)
+    if _weak_reason:
+        raise ImproperlyConfigured(
+            f'SECRET_KEY recusada: {_weak_reason}. Com DEBUG=False a aplicação '
+            'só sobe com uma chave forte. Gere uma com '
+            '`python -c "import secrets; print(secrets.token_urlsafe(50))"` '
+            'e defina a variável de ambiente SECRET_KEY. Para desenvolvimento '
+            'local, copie .env.example para .env.'
+        )
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 
 # Application definition
@@ -50,15 +69,15 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Precisa vir antes de qualquer middleware que possa gerar resposta
+    # (como o CommonMiddleware), para que toda resposta leve os cabeçalhos CORS.
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -144,7 +163,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS: origens (esquema + host + porta) autorizadas a chamar a API pelo navegador.
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 
 
 MEDIA_URL = '/media/'

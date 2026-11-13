@@ -81,7 +81,10 @@ stockcontrol/
 │
 ├── Django/                          # Back-end
 │   ├── core/                        # Configurações do projeto
-│   │   ├── settings.py
+│   │   ├── settings.py              # Lê a configuração do ambiente / .env
+│   │   ├── settings_test.py         # Configuração fixa usada pelo pytest
+│   │   ├── secret_key.py            # Validação da SECRET_KEY
+│   │   ├── tests/                   # Testes de configuração e CORS
 │   │   ├── urls.py
 │   │   ├── asgi.py
 │   │   └── wsgi.py
@@ -94,11 +97,13 @@ stockcontrol/
 │   │   ├── admin.py
 │   │   └── tests/                   # Testes da API (pytest)
 │   ├── manage.py
+│   ├── .env.example                 # Modelo de configuração do back-end
 │   ├── pyproject.toml               # Configuração do pytest
 │   ├── requirements.txt             # Dependências da aplicação
 │   └── requirements-dev.txt         # + dependências de teste
 │
 └── React/                           # Front-end
+    ├── .env.example                 # Modelo de configuração do front-end
     ├── public/
     └── src/
         ├── api/
@@ -184,6 +189,9 @@ venv\Scripts\activate         # Windows
 # Instale as dependências
 pip install -r requirements.txt
 
+# Crie o arquivo de configuração local (não é versionado)
+cp .env.example .env
+
 # Execute as migrações
 python manage.py migrate
 
@@ -207,6 +215,9 @@ cd React
 # Instale as dependências
 npm install
 
+# Opcional: só é preciso se a API não estiver em http://127.0.0.1:8000
+cp .env.example .env
+
 # Inicie o dev server
 npm run dev
 ```
@@ -222,9 +233,39 @@ Senha:   testpass123
 
 ---
 
+## 🔧 Configuração
+
+Nenhum valor sensível fica no código: a configuração vem de variáveis de ambiente ou de um arquivo `.env`, que nunca é versionado. Cada parte do projeto tem um `.env.example` com os valores de desenvolvimento.
+
+### Back-end (`Django/.env`)
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `DEBUG` | `False` | `True` somente em desenvolvimento |
+| `SECRET_KEY` | — | Obrigatória com `DEBUG=False`; com `DEBUG=True` uma chave de desenvolvimento é usada |
+| `ALLOWED_HOSTS` | `localhost,127.0.0.1` | Hosts aceitos, separados por vírgula |
+| `CORS_ALLOWED_ORIGINS` | *(nenhuma)* | Origens do front-end autorizadas, separadas por vírgula |
+| `CORS_ALLOW_ALL_ORIGINS` | `False` | `True` libera qualquer origem |
+
+Sem configuração nenhuma, valem os padrões de produção. Com `DEBUG=False` a aplicação **se recusa a subir** se a `SECRET_KEY` estiver ausente, tiver menos de 50 caracteres, poucos caracteres diferentes ou o prefixo `django-insecure-`. Para gerar uma chave forte:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(50))"
+```
+
+### Front-end (`React/.env`)
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `VITE_API_URL` | `http://127.0.0.1:8000/api/` | Endereço base da API |
+
+As variáveis `VITE_*` são embutidas no JavaScript no momento do build e ficam visíveis no navegador; não servem para segredos.
+
+---
+
 ## 🧪 Testes
 
-Os testes ficam em `Django/production/tests/` e usam **pytest** com **pytest-django**. Eles exercitam a API por HTTP (autenticação JWT, CRUDs e as ações `can_produce` e `produce`) em um banco de testes criado e descartado a cada execução.
+Os testes usam **pytest** com **pytest-django**. Os de `Django/production/tests/` exercitam a API por HTTP (autenticação JWT, CRUDs e as ações `can_produce` e `produce`) em um banco de testes criado e descartado a cada execução; os de `Django/core/tests/` cobrem a leitura da configuração e o CORS. A suíte não depende do `.env`: usa a configuração fixa de `core/settings_test.py`.
 
 ```bash
 cd Django
@@ -235,7 +276,7 @@ pytest                                   # roda a suíte
 pytest --cov=production --cov=core       # com relatório de cobertura
 ```
 
-Resultado esperado hoje: `99 passed, 13 xfailed`.
+Resultado esperado hoje: `124 passed, 13 xfailed`.
 
 ### Bugs conhecidos (falhas esperadas)
 

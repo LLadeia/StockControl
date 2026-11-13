@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-
-const API_URL = "http://127.0.0.1:8000/api";
+import api from "/src/api/api.js";
 
 export default function Login() {
   const [username, setUsername] = useState("testuser");
@@ -16,7 +14,7 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.post(`${API_URL}/token/`, { username, password });
+      const response = await api.post("token/", { username, password });
       localStorage.setItem("token", response.data.access);
       localStorage.setItem("user_type", "user");
       navigate("/Dashboard");
