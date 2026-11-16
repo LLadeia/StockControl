@@ -1,22 +1,17 @@
 from django.db import transaction
-from django.contrib.auth.models import User
-
-from rest_framework.viewsets import ModelViewSet, ViewSet
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 
-from .models import Product, RawMaterial, ProductRawMaterial, ProductionLog
-from simple_history.models import HistoricalRecords
-
+from .models import Product, ProductionLog, ProductRawMaterial, RawMaterial
 from .serializers import (
+    ProductionLogSerializer,
+    ProductRawMaterialSerializer,
     ProductSerializer,
     RawMaterialSerializer,
-    ProductRawMaterialSerializer,
-    ProductionLogSerializer,
-    HistorySerializer,
-    UserSerializer
+    UserSerializer,
 )
 
 
@@ -101,7 +96,12 @@ class ProductViewSet(ModelViewSet):
                 manufacturing_cost = float(relation.manufacturing_price or 0)
                 unit_price += raw_material_cost + manufacturing_cost
             total_price = unit_price * quantity
-            ProductionLog.objects.create(product=product, quantity=quantity, unit_price=unit_price, total_price=total_price)
+            ProductionLog.objects.create(
+                product=product,
+                quantity=quantity,
+                unit_price=unit_price,
+                total_price=total_price,
+            )
 
         return Response({"success": True})
 
@@ -124,7 +124,7 @@ class ProductionLogViewSet(ModelViewSet):
     def by_model(self, request):
         """Retorna histórico filtrado por modelo"""
         model_type = request.query_params.get('model', '')
-        
+
         if model_type == 'Product':
             histories = Product.history.all().order_by('-history_date')
         elif model_type == 'RawMaterial':
