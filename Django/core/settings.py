@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
 from decouple import Csv, config
 from django.core.exceptions import ImproperlyConfigured

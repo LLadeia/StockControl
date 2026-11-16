@@ -1,6 +1,8 @@
-from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Product, RawMaterial, ProductRawMaterial, ProductionLog
+from rest_framework import serializers
+
+from .models import Product, ProductionLog, ProductRawMaterial, RawMaterial
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,14 +22,32 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductRawMaterialSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     raw_material_name = serializers.CharField(source='raw_material.name', read_only=True)
-    product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
-    raw_material_price = serializers.DecimalField(source='raw_material.price', max_digits=10, decimal_places=2, read_only=True)
-    manufacturing_price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    product_price = serializers.DecimalField(
+        source='product.price', max_digits=10, decimal_places=2, read_only=True
+    )
+    raw_material_price = serializers.DecimalField(
+        source='raw_material.price', max_digits=10, decimal_places=2, read_only=True
+    )
+    manufacturing_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False, allow_null=True
+    )
     cost = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductRawMaterial
-        fields = ['id', 'product', 'product_name', 'product_price', 'raw_material', 'raw_material_name', 'raw_material_price', 'quantity', 'price', 'manufacturing_price', 'cost']
+        fields = [
+            'id',
+            'product',
+            'product_name',
+            'product_price',
+            'raw_material',
+            'raw_material_name',
+            'raw_material_price',
+            'quantity',
+            'price',
+            'manufacturing_price',
+            'cost',
+        ]
 
     def get_cost(self, obj):
         try:
@@ -54,4 +74,6 @@ class ProductionLogSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProductionLog
-        fields = ['id', 'product', 'product_name', 'quantity', 'unit_price', 'total_price', 'created_at']
+        fields = [
+            'id', 'product', 'product_name', 'quantity', 'unit_price', 'total_price', 'created_at'
+        ]
