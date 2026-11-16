@@ -10,3 +10,32 @@ filterwarnings = [
     # O WhiteNoise avisa que STATIC_ROOT não existe; os testes não rodam collectstatic.
     "ignore:No directory at:UserWarning",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["production/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "C4", "SIM", "DJ"]
+# DJ008 pede __str__ em todos os modelos. Adicioná-lo a Product e
+# ProductRawMaterial mudaria o campo object_str de
+# /api/production-logs/by_model/, que é parte do contrato da API.
+ignore = ["DJ008"]
+
+[tool.coverage.run]
+source = ["."]
+branch = true
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "core/asgi.py",
+    "core/wsgi.py",
+    "core/settings_test.py",
+    "manage.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true

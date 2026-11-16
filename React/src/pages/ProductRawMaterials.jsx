@@ -19,8 +19,6 @@ export default function ProductRawMaterials() {
   const [editing, setEditing] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -32,7 +30,7 @@ export default function ProductRawMaterials() {
       setProducts(pRes.data);
       setMaterials(mRes.data);
       setAssociations(aRes.data);
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao carregar dados");
     }
     setLoading(false);
@@ -72,7 +70,7 @@ export default function ProductRawMaterials() {
       setQuantity(1);
       setManufacturingPrice(0);
       await loadData();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao associar");
     }
     setLoading(false);
@@ -85,7 +83,7 @@ export default function ProductRawMaterials() {
       await api.delete(`product-raw-materials/${id}/`);
       pushToast("success", "Associação removida");
       await loadData();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao remover");
     }
     setLoading(false);
@@ -120,7 +118,7 @@ export default function ProductRawMaterials() {
       setModalVisible(false);
       setEditing(null);
       await loadData();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao salvar edição");
     }
     setLoading(false);
@@ -130,6 +128,13 @@ export default function ProductRawMaterials() {
   const filteredAssocs = selectedProduct 
     ? associations.filter(a => String(a.product) === String(selectedProduct))
     : associations;
+
+  // Carrega os dados ao montar a página. O efeito fica depois das declarações
+  // porque a função de carga precisa existir quando ele é definido.
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="container">
@@ -207,7 +212,6 @@ export default function ProductRawMaterials() {
               </thead>
               <tbody>
                 {filteredAssocs.map(a => {
-                  const product = products.find(p => p.id === a.product);
                   const material = materials.find(m => m.id === a.raw_material);
                   const materialPrice = parseFloat(material?.price || 0);
                   const manufacturing = parseFloat(a.manufacturing_price || 0);

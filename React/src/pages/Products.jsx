@@ -12,24 +12,16 @@ export default function Products() {
   const [modalVisible, setModalVisible] = useState(false);
   const [imageFile, setImageFile] = useState(null);
 
-  useEffect(() => { load(); }, []);
-
   const load = async () => {
     setLoading(true);
     try {
       const res = await api.get("products/");
       setProducts(res.data);
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao carregar produtos");
     }
     setLoading(false);
   };
-
-  
-  async function handleSubmit(e) {
-    e.preventDefault();
-    await create();
-  }
 
   const pushToast = (type, message) => {
     const id = Date.now() + Math.random();
@@ -50,7 +42,7 @@ export default function Products() {
       pushToast("success", "Produto criado");
       setForm({ name: "", price: "" , image: null});
       await load();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao criar");
     }
     setLoading(false);
@@ -63,7 +55,7 @@ export default function Products() {
       await api.delete(`products/${id}/`);
       pushToast("success", "Produto removido");
       await load();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao remover");
     }
     setLoading(false);
@@ -89,11 +81,18 @@ export default function Products() {
       setModalVisible(false);
       setEditing(null);
       await load();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao salvar");
     }
     setLoading(false);
   };
+
+  // Carrega os dados ao montar a página. O efeito fica depois das declarações
+  // porque a função de carga precisa existir quando ele é definido.
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="container">

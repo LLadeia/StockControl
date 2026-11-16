@@ -12,10 +12,6 @@ export default function Production() {
   const [productions, setProductions] = useState([]);
   const [associations, setAssociations] = useState([]);
 
-  useEffect(() => {
-    loadInitial();
-  }, []);
-
   const loadInitial = async () => {
     setLoading(true);
     try {
@@ -45,7 +41,7 @@ export default function Production() {
     try {
       const res = await api.get(`products/${productId}/can_produce/`);
       setStatus(res.data);
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao verificar estoque");
       setStatus(null);
     }
@@ -57,7 +53,7 @@ export default function Production() {
 
     setLoading(true);
     try {
-      const res = await api.post(
+      await api.post(
         `products/${selectedProduct}/produce/`,
         { quantity }
       );
@@ -79,6 +75,13 @@ export default function Production() {
     const date = new Date(dateString);
     return date.toLocaleString('pt-BR');
   };
+
+  // Carrega os dados ao montar a página. O efeito fica depois das declarações
+  // porque a função de carga precisa existir quando ele é definido.
+  useEffect(() => {
+    loadInitial();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="container">

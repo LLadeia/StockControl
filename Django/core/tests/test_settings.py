@@ -41,7 +41,7 @@ print(json.dumps({
 
 def run_with_env(**variables):
     env = {key: value for key, value in os.environ.items() if key not in VARIABLES}
-    env.update({name: "" for name in VARIABLES})
+    env.update(dict.fromkeys(VARIABLES, ""))
     env.update(BOOLEAN_VARIABLES)
     env.update(variables)
     env["DJANGO_SETTINGS_MODULE"] = "core.settings"

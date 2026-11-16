@@ -3,7 +3,7 @@ from simple_history.models import HistoricalRecords
 
 
 def upload_to(instance, filename):
-    return 'file_pessoa/{filename}'.format(filename=filename)
+    return f'file_pessoa/{filename}'
 
 
 class RawMaterial(models.Model):

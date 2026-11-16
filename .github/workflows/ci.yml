@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Um novo push no mesmo branch cancela a execução anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Back-end (ruff + pytest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Django
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: stockcontrol
+          POSTGRES_USER: stockcontrol
+          POSTGRES_PASSWORD: stockcontrol
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U stockcontrol -d stockcontrol"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            Django/requirements.txt
+            Django/requirements-dev.txt
+
+      - name: Instalar dependências
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Testes com cobertura mínima
+        run: pytest --cov
+
+  frontend:
+    name: Front-end (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: React
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: React/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Build (Vite)
+        run: npm run build
+
+  docker:
+    name: Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Subir banco, API e front-end
+        run: docker compose up --build --detach --wait
+
+      - name: Front-end responde
+        run: curl --fail --silent --show-error --retry 10 --retry-delay 3 --retry-all-errors http://localhost:8080/ > /dev/null
+
+      - name: API exige autenticação
+        run: |
+          for attempt in $(seq 1 10); do
+            code=$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/products/ || true)
+            echo "tentativa $attempt: HTTP $code"
+            if [ "$code" = "401" ]; then exit 0; fi
+            sleep 3
+          done
+          echo "esperava HTTP 401 em /api/products/"
+          exit 1
+
+      - name: Logs dos contêineres
+        if: failure()
+        run: docker compose logs
+
+      - name: Derrubar ambiente
+        if: always()
+        run: docker compose down --volumes
