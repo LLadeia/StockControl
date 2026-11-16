@@ -2,12 +2,13 @@
 
 > Sistema web full-stack para controle de estoque de matérias-primas e planejamento de produção industrial.
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.x-092E20?style=flat&logo=django&logoColor=white)
 ![DRF](https://img.shields.io/badge/Django_REST_Framework-3.x-red?style=flat)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat&logo=vite&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat&logo=sqlite&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)
 
 ---
 
@@ -54,12 +55,14 @@ O **StockControl** é um sistema de gestão de produção industrial desenvolvid
 ### Back-end
 | Tecnologia | Versão | Uso |
 |---|---|---|
-| Python | 3.11 | Linguagem principal |
+| Python | 3.12 | Linguagem principal |
 | Django | 5.x | Framework web |
 | Django REST Framework | 3.x | API RESTful |
 | Simple JWT | — | Autenticação via token JWT |
 | django-simple-history | 3.x | Auditoria de alterações |
-| SQLite | — | Banco de dados |
+| PostgreSQL | 16 | Banco de dados |
+| Gunicorn + WhiteNoise | — | Servidor da aplicação e arquivos estáticos |
+| Docker Compose | — | Banco, API e front-end com um comando |
 | pytest + pytest-django | — | Testes automatizados |
 
 ### Front-end
@@ -78,6 +81,8 @@ O **StockControl** é um sistema de gestão de produção industrial desenvolvid
 stockcontrol/
 ├── .gitignore
 ├── README.md
+├── docker-compose.yml               # Banco, API e front-end
+├── .env.example                     # Ajustes opcionais do docker compose
 │
 ├── Django/                          # Back-end
 │   ├── core/                        # Configurações do projeto
@@ -97,12 +102,16 @@ stockcontrol/
 │   │   ├── admin.py
 │   │   └── tests/                   # Testes da API (pytest)
 │   ├── manage.py
+│   ├── Dockerfile                   # Imagem da API (e estágio de testes)
+│   ├── docker-entrypoint.sh         # Aplica as migrações ao subir
 │   ├── .env.example                 # Modelo de configuração do back-end
 │   ├── pyproject.toml               # Configuração do pytest
 │   ├── requirements.txt             # Dependências da aplicação
 │   └── requirements-dev.txt         # + dependências de teste
 │
 └── React/                           # Front-end
+    ├── Dockerfile                   # Build do Vite + nginx
+    ├── nginx.conf                   # Front-end e proxy para a API
     ├── .env.example                 # Modelo de configuração do front-end
     ├── public/
     └── src/
@@ -163,20 +172,47 @@ stockcontrol/
 
 ---
 
-## 🛠️ Como Rodar Localmente
-
-### Pré-requisitos
-- Python 3.11+
-- Node.js 18+
-
-### 1. Clone o repositório
+## 🛠️ Como Rodar
 
 ```bash
 git clone https://github.com/LLadeia/stockcontrol.git
 cd stockcontrol
 ```
 
-### 2. Back-end (Django)
+### Com Docker (recomendado)
+
+Pré-requisito: Docker com o plugin Compose.
+
+```bash
+docker compose up --build
+```
+
+Esse comando sobe o PostgreSQL, a API (aplicando as migrações) e o front-end. Com tudo no ar, crie o usuário de teste em outro terminal:
+
+```bash
+docker compose exec api python manage.py shell -c "from django.contrib.auth.models import User; User.objects.create_user('testuser', password='testpass123')"
+```
+
+| Endereço | O quê |
+|---|---|
+| `http://localhost:8080` | Aplicação (front-end) |
+| `http://localhost:8080/api/` | API, pela mesma origem do front-end |
+| `http://localhost:8080/admin/` | Admin do Django (exige um superusuário: `docker compose exec api python manage.py createsuperuser`) |
+| `http://localhost:8000/api/` | API direto no contêiner, para `curl` e afins |
+
+O nginx do contêiner `web` entrega o front-end e encaminha `/api/`, `/admin/` e `/static/` para o Django, além de servir as imagens enviadas (`/media/`). Os dados do banco e as imagens ficam em volumes e sobrevivem a um `docker compose down`; para apagar tudo, use `docker compose down -v`.
+
+Nenhum arquivo de configuração é necessário: o compose sobe em modo de desenvolvimento (`DEBUG=True`). Para mudar portas, a senha do banco ou rodar com `DEBUG=False`, copie o `.env.example` da raiz para `.env`.
+
+### Sem Docker
+
+Pré-requisitos: Python 3.12+, Node.js 20+ e um PostgreSQL acessível. O jeito mais simples de ter o banco é subir só ele pelo compose:
+
+```bash
+docker compose up -d db
+```
+
+#### 1. Back-end (Django)
 
 ```bash
 cd Django
@@ -189,7 +225,8 @@ venv\Scripts\activate         # Windows
 # Instale as dependências
 pip install -r requirements.txt
 
-# Crie o arquivo de configuração local (não é versionado)
+# Crie o arquivo de configuração local (não é versionado).
+# Os valores de exemplo já apontam para o banco do `docker compose up -d db`.
 cp .env.example .env
 
 # Execute as migrações
@@ -207,7 +244,7 @@ python manage.py runserver
 
 API disponível em: `http://127.0.0.1:8000/api/`
 
-### 3. Front-end (React)
+#### 2. Front-end (React)
 
 ```bash
 cd React
@@ -224,7 +261,7 @@ npm run dev
 
 Interface disponível em: `http://localhost:5173`
 
-### 4. Credenciais de Teste
+### Credenciais de Teste
 
 ```
 Usuário: testuser
@@ -246,18 +283,27 @@ Nenhum valor sensível fica no código: a configuração vem de variáveis de am
 | `ALLOWED_HOSTS` | `localhost,127.0.0.1` | Hosts aceitos, separados por vírgula |
 | `CORS_ALLOWED_ORIGINS` | *(nenhuma)* | Origens do front-end autorizadas, separadas por vírgula |
 | `CORS_ALLOW_ALL_ORIGINS` | `False` | `True` libera qualquer origem |
+| `POSTGRES_DB` | `stockcontrol` | Nome do banco |
+| `POSTGRES_USER` | `stockcontrol` | Usuário do banco |
+| `POSTGRES_PASSWORD` | `stockcontrol` | Senha do banco |
+| `POSTGRES_HOST` | `localhost` | Servidor do banco |
+| `POSTGRES_PORT` | `5432` | Porta do banco |
 
-Sem configuração nenhuma, valem os padrões de produção. Com `DEBUG=False` a aplicação **se recusa a subir** se a `SECRET_KEY` estiver ausente, tiver menos de 50 caracteres, poucos caracteres diferentes ou o prefixo `django-insecure-`. Para gerar uma chave forte:
+Os padrões do banco são os do PostgreSQL de desenvolvimento do `docker-compose.yml`; troque-os em qualquer outro ambiente. No restante, sem configuração nenhuma valem os padrões de produção. Com `DEBUG=False` a aplicação **se recusa a subir** se a `SECRET_KEY` estiver ausente, tiver menos de 50 caracteres, poucos caracteres diferentes ou o prefixo `django-insecure-`. Para gerar uma chave forte:
 
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
+### Docker Compose (`.env` na raiz)
+
+Opcional. Aceita `DEBUG`, `SECRET_KEY`, `ALLOWED_HOSTS` e as variáveis `POSTGRES_*` acima, mais as portas publicadas na sua máquina: `WEB_PORT` (8080), `API_PORT` (8000) e `POSTGRES_PORT` (5432).
+
 ### Front-end (`React/.env`)
 
 | Variável | Padrão | Descrição |
 |---|---|---|
-| `VITE_API_URL` | `http://127.0.0.1:8000/api/` | Endereço base da API |
+| `VITE_API_URL` | `http://127.0.0.1:8000/api/` | Endereço base da API (na imagem Docker o padrão é `/api/`) |
 
 As variáveis `VITE_*` são embutidas no JavaScript no momento do build e ficam visíveis no navegador; não servem para segredos.
 
@@ -265,7 +311,15 @@ As variáveis `VITE_*` são embutidas no JavaScript no momento do build e ficam 
 
 ## 🧪 Testes
 
-Os testes usam **pytest** com **pytest-django**. Os de `Django/production/tests/` exercitam a API por HTTP (autenticação JWT, CRUDs e as ações `can_produce` e `produce`) em um banco de testes criado e descartado a cada execução; os de `Django/core/tests/` cobrem a leitura da configuração e o CORS. A suíte não depende do `.env`: usa a configuração fixa de `core/settings_test.py`.
+Os testes usam **pytest** com **pytest-django**. Os de `Django/production/tests/` exercitam a API por HTTP (autenticação JWT, CRUDs e as ações `can_produce` e `produce`) em um banco de testes (`test_stockcontrol`) criado e descartado a cada execução; os de `Django/core/tests/` cobrem a leitura da configuração e o CORS. A suíte não depende do `.env`: usa a configuração fixa de `core/settings_test.py`.
+
+A suíte roda contra PostgreSQL, o mesmo banco da aplicação. Pelo Docker, um comando constrói a imagem de testes, sobe o banco e executa tudo:
+
+```bash
+docker compose run --rm tests
+```
+
+Fora do Docker, com o banco no ar (`docker compose up -d db`):
 
 ```bash
 cd Django
@@ -276,7 +330,7 @@ pytest                                   # roda a suíte
 pytest --cov=production --cov=core       # com relatório de cobertura
 ```
 
-Resultado esperado hoje: `124 passed, 13 xfailed`.
+Resultado esperado hoje: `126 passed, 13 xfailed`.
 
 ### Bugs conhecidos (falhas esperadas)
 

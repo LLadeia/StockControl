@@ -69,6 +69,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serve os arquivos estáticos (admin) direto pela aplicação, sem depender
+    # do runserver. Fica logo após o SecurityMiddleware, como pede o WhiteNoise.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     # Precisa vir antes de qualquer middleware que possa gerar resposta
     # (como o CommonMiddleware), para que toda resposta leve os cabeçalhos CORS.
     'corsheaders.middleware.CorsMiddleware',
@@ -118,10 +121,16 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Os padrões batem com o banco de desenvolvimento do docker-compose.yml
+# (`docker compose up -d db`). Em qualquer outro ambiente, defina as variáveis.
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('POSTGRES_DB', default='stockcontrol'),
+        'USER': config('POSTGRES_USER', default='stockcontrol'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='stockcontrol'),
+        'HOST': config('POSTGRES_HOST', default='localhost'),
+        'PORT': config('POSTGRES_PORT', default='5432'),
     }
 }
 
@@ -161,6 +170,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
 
 
 # CORS: origens (esquema + host + porta) autorizadas a chamar a API pelo navegador.
