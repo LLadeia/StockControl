@@ -24,6 +24,10 @@ FROM base AS test
 
 RUN pip install -r requirements-dev.txt
 
+# /app pertence ao root; o arquivo de dados do coverage vai para /tmp para
+# que `pytest --cov` funcione com o usuário sem privilégios.
+ENV COVERAGE_FILE=/tmp/.coverage
+
 USER app
 CMD ["pytest", "-p", "no:cacheprovider"]
 
