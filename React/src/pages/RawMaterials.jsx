@@ -12,14 +12,12 @@ export default function RawMaterials() {
   const [modalVisible, setModalVisible] = useState(false);
   const [imageFile, setImageFile] = useState(null);
 
-  useEffect(() => { load(); }, []);
-
   const load = async () => {
     setLoading(true);
     try {
       const res = await api.get("raw-materials/");
       setItems(res.data);
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao carregar");
     }
     setLoading(false);
@@ -44,7 +42,7 @@ export default function RawMaterials() {
       setForm({ name: "", stock: 0, price: "" , image: null});
       setImageFile(null);
       await load();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao criar");
     }
     setLoading(false);
@@ -57,7 +55,7 @@ export default function RawMaterials() {
       await api.delete(`raw-materials/${id}/`);
       pushToast("success", "Removido");
       await load();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao remover");
     }
     setLoading(false);
@@ -82,11 +80,18 @@ export default function RawMaterials() {
       setEditing(null);
       setImageFile(null);
       await load();
-    } catch (err) {
+    } catch {
       pushToast("error", "Erro ao salvar");
     }
     setLoading(false);
   };
+
+  // Carrega os dados ao montar a página. O efeito fica depois das declarações
+  // porque a função de carga precisa existir quando ele é definido.
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="container">
