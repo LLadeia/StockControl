@@ -22,3 +22,20 @@ select = ["E", "W", "F", "I", "B", "UP", "C4", "SIM", "DJ"]
 # ProductRawMaterial mudaria o campo object_str de
 # /api/production-logs/by_model/, que é parte do contrato da API.
 ignore = ["DJ008"]
+
+[tool.coverage.run]
+source = ["."]
+branch = true
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "core/asgi.py",
+    "core/wsgi.py",
+    "core/settings_test.py",
+    "manage.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
