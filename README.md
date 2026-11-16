@@ -2,6 +2,7 @@
 
 > Sistema web full-stack para controle de estoque de matérias-primas e planejamento de produção industrial.
 
+[![CI](https://github.com/LLadeia/StockControl/actions/workflows/ci.yml/badge.svg)](https://github.com/LLadeia/StockControl/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat&logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.x-092E20?style=flat&logo=django&logoColor=white)
 ![DRF](https://img.shields.io/badge/Django_REST_Framework-3.x-red?style=flat)
@@ -64,6 +65,8 @@ O **StockControl** é um sistema de gestão de produção industrial desenvolvid
 | Gunicorn + WhiteNoise | — | Servidor da aplicação e arquivos estáticos |
 | Docker Compose | — | Banco, API e front-end com um comando |
 | pytest + pytest-django | — | Testes automatizados |
+| ruff | — | Lint do código Python |
+| GitHub Actions | — | Integração contínua |
 
 ### Front-end
 | Tecnologia | Versão | Uso |
@@ -81,6 +84,7 @@ O **StockControl** é um sistema de gestão de produção industrial desenvolvid
 stockcontrol/
 ├── .gitignore
 ├── README.md
+├── .github/workflows/ci.yml         # Integração contínua (GitHub Actions)
 ├── docker-compose.yml               # Banco, API e front-end
 ├── .env.example                     # Ajustes opcionais do docker compose
 │
@@ -105,9 +109,9 @@ stockcontrol/
 │   ├── Dockerfile                   # Imagem da API (e estágio de testes)
 │   ├── docker-entrypoint.sh         # Aplica as migrações ao subir
 │   ├── .env.example                 # Modelo de configuração do back-end
-│   ├── pyproject.toml               # Configuração do pytest
+│   ├── pyproject.toml               # Configuração do pytest, coverage e ruff
 │   ├── requirements.txt             # Dependências da aplicação
-│   └── requirements-dev.txt         # + dependências de teste
+│   └── requirements-dev.txt         # + dependências de teste e lint
 │
 └── React/                           # Front-end
     ├── Dockerfile                   # Build do Vite + nginx
@@ -327,10 +331,18 @@ source venv/bin/activate                 # o mesmo ambiente virtual do back-end
 pip install -r requirements-dev.txt
 
 pytest                                   # roda a suíte
-pytest --cov=production --cov=core       # com relatório de cobertura
+pytest --cov                             # com relatório de cobertura
+ruff check .                             # lint do código Python
 ```
 
-Resultado esperado hoje: `126 passed, 13 xfailed`.
+Resultado esperado hoje: `126 passed, 13 xfailed`, com cobertura de 94%. O `pytest --cov` falha se a cobertura cair abaixo de **90%** (configurado em `Django/pyproject.toml`; migrações, testes e arquivos de configuração ficam de fora da medição).
+
+No front-end, o lint usa o ESLint:
+
+```bash
+cd React
+npm run lint
+```
 
 ### Bugs conhecidos (falhas esperadas)
 
@@ -346,6 +358,20 @@ Os testes marcados com `xfail` descrevem o comportamento **correto** de pontos e
 | Migrações | Geradas com Django 6; no Django 5 do `requirements.txt` há uma migração pendente |
 
 Para ver cada falha em detalhe: `pytest --runxfail`.
+
+---
+
+## 🔄 Integração Contínua
+
+O workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda no GitHub Actions a cada push na `main` e em todo pull request, com três jobs em paralelo:
+
+| Job | O que verifica |
+|---|---|
+| **Back-end** | `ruff check .` e `pytest --cov` contra um PostgreSQL 16 (serviço do Actions), com cobertura mínima de 90% |
+| **Front-end** | `npm ci`, `npm run lint` (ESLint) e `npm run build` (Vite) |
+| **Docker** | `docker compose up --build --wait` sobe banco, API e front-end; o job confere que `http://localhost:8080/` responde e que `/api/products/` exige autenticação (HTTP 401) através do nginx |
+
+Um pull request só fica verde se os três passarem. As mesmas verificações rodam localmente com os comandos da seção [Testes](#-testes).
 
 ---
 
